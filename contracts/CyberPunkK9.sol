@@ -27,7 +27,6 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
     uint256 public maxSupply = 2088;
     uint256 public maxMintQuantity = 5;
     uint256 public nftPerAddressLimit = 5;
-    uint256 public nftPerPublicAddressLimit = 15;
 
     bool public paused = false;
     bool public revealed = false;
@@ -35,10 +34,11 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
     bool public oGCanMint = false;
     bool public whitelistedCanMint = false;
     bool public publicCanMint = false;
+    bool public freeClaimCanMint = false;
 
-    address[] public freeMintAddresses;
     address[] public whitelistedAddresses;
     address[] public oGAddresses;
+    address[] public freeClaimAddresses;
 
     mapping(address => uint256) public addressMintedBalance;
 
@@ -65,7 +65,6 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
         if (msg.sender != owner()) {
             bool _isOG = isOG(msg.sender);
             bool _isWhitelisted = isWhitelisted(msg.sender);
-            bool _isFreeMint = isFreeMint(msg.sender);
             uint256 cost = 0;
 
             if(_isOG) {
@@ -83,17 +82,9 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
                 require(ownerMintedCount + _mintQuantity <= nftPerAddressLimit, "max NFT per address exceeded");
             }
 
-            if(_isFreeMint) {
-                uint256 ownerMintedCount = addressMintedBalance[msg.sender];
-                require(ownerMintedCount + _mintQuantity <= 1, "max NFT per address exceeded");
-            }
-
-            if(_isOG == false && _isWhitelisted == false && _isFreeMint == false) {
+            if(_isOG == false && _isWhitelisted == false) {
                 require(publicCanMint, "Public users can't mint yet.");
                 cost = publicMintCost;
-
-                uint256 ownerMintedCount = addressMintedBalance[msg.sender];
-                require(ownerMintedCount + _mintQuantity <= nftPerPublicAddressLimit, "max NFT per address exceeded");
             }
 
             require(msg.value >= cost * _mintQuantity, "insufficient funds");
@@ -107,14 +98,13 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
         }
     }
 
-    function isFreeMint(address _user) public view returns (bool) {
-        uint tokenId = 0;
-        for (uint i = 0; i < freeMintAddresses.length; i++) {
-            if (freeMintAddresses[i] == _user) {
-                return tokenId + 1;
-            }
-        }
-        return tokenId;
+    function freeClaim(uint tokenId) public payable {
+        require(!paused, "the contract is paused");
+        require(freeClaimCanMint, "Free claiming is not active yet.");
+        require(tokenId >= 1 && tokenId <= 208, "Token ID is not within the free claim IDs.");
+        require(isFreeClaim(msg.sender, tokenId), "Token ID is not associated to your address.");
+
+        _safeMint(msg.sender, tokenId);
     }
 
     function isOG(address _user) public view returns (bool) {
@@ -131,6 +121,13 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
             if (whitelistedAddresses[i] == _user) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    function isFreeClaim(address _user, uint _tokenId) public view returns (bool) {
+        if(freeClaimAddresses[_tokenId - 1] == _user) {
+            return true;
         }
         return false;
     }
@@ -172,10 +169,6 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
 
     function setNftPerAddressLimit(uint256 _limit) public onlyOwner {
         nftPerAddressLimit = _limit;
-    }
-
-    function setNftPerPublicAddressLimit(uint256 _limit) public onlyOwner {
-        nftPerPublicAddressLimit = _limit;
     }
 
     function setOGMintCost(uint256 _newCost) public onlyOwner {
@@ -222,9 +215,8 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
         publicCanMint = _state;
     }
 
-    function freeMintUsers(address[] calldata _users) public onlyOwner {
-        delete freeMintAddresses;
-        freeMintAddresses = _users;
+    function setFreeClaimCanMint(bool _state) public onlyOwner {
+        freeClaimCanMint = _state;
     }
 
     function whitelistUsers(address[] calldata _users) public onlyOwner {
@@ -237,11 +229,21 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
         oGAddresses = _users;
     }
 
+    function freeClaimUsers(address[] calldata _users) public onlyOwner {
+        delete freeClaimAddresses;
+        freeClaimAddresses = _users;
+    }
+
     function withdraw() public onlyOwner {
         uint balance = address(this).balance;
 
-        payable(0x6950a54Ea3D202DD672C833994A4D81574dA51a7).transfer(balance * 4 / 100);
-        payable(0x987b91b831f01b31eE5c0acFFd52dbeb602DE2D5).transfer(balance * 56 / 100);
-        payable(0xef4D06449320587DC58a63606E59f52884c3F40C).transfer(address(this).balance);
+        // testnet
+        payable(0xa0Ee7A142d267C1f36714E4a8F75612F20a79720).transfer(balance * 5 / 100);
+        payable(0xBcd4042DE499D14e55001CcbB24a551F3b954096).transfer(balance * 5 / 100);
+        payable(0x71bE63f3384f5fb98995898A86B02Fb2426c5788).transfer(address(this).balance);
+
+//        payable(0xceE523717E912c17B21100bb041ae46689acEbaE).transfer(balance * 5 / 100);
+//        payable(0x987b91b831f01b31eE5c0acFFd52dbeb602DE2D5).transfer(balance * 5 / 100);
+//        payable(0xF3309975C3Ab758E8b3937f5C524002EB09AB5eB).transfer(address(this).balance);
     }
 }
