@@ -54,7 +54,10 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
         require(!paused, "the contract is paused");
         uint256 supply = _tokenIds.current();
         require(_mintQuantity > 0, "need to mint at least 1 NFT");
-        require(_mintQuantity <= maxMintQuantity, "max mint amount per session exceeded");
+        require(
+            _mintQuantity <= maxMintQuantity,
+            "max mint amount per session exceeded"
+        );
         require(supply + _mintQuantity <= maxSupply, "max NFT limit exceeded");
 
         if (msg.sender != owner()) {
@@ -62,22 +65,28 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
             bool _isWhitelisted = isWhitelisted(msg.sender);
             uint256 cost = 0;
 
-            if(_isOG) {
+            if (_isOG) {
                 require(oGCanMint, "OG users can't mint yet.");
                 cost = oGMintCost;
             }
 
-            if(_isWhitelisted) {
-                require(whitelistedCanMint, "Whitelisted users can't mint yet.");
+            if (_isWhitelisted) {
+                require(
+                    whitelistedCanMint,
+                    "Whitelisted users can't mint yet."
+                );
                 cost = whitelistedMintCost;
             }
 
-            if(_isOG || _isWhitelisted) {
+            if (_isOG || _isWhitelisted) {
                 uint256 ownerMintedCount = addressMintedBalance[msg.sender];
-                require(ownerMintedCount + _mintQuantity <= nftPerAddressLimit, "max NFT per address exceeded");
+                require(
+                    ownerMintedCount + _mintQuantity <= nftPerAddressLimit,
+                    "max NFT per address exceeded"
+                );
             }
 
-            if(_isOG == false && _isWhitelisted == false) {
+            if (_isOG == false && _isWhitelisted == false) {
                 require(publicCanMint, "Public users can't mint yet.");
                 cost = publicMintCost;
             }
@@ -93,17 +102,23 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
         }
     }
 
-    function freeClaim(uint tokenId) public payable {
+    function freeClaim(uint256 tokenId) public payable {
         require(!paused, "the contract is paused");
         require(freeClaimCanMint, "Free claiming is not active yet.");
-        require(tokenId >= 1 && tokenId <= 208, "Token ID is not within the free claim IDs.");
-        require(isFreeClaim(msg.sender, tokenId), "Token ID is not associated to your address.");
+        require(
+            tokenId >= 1 && tokenId <= 208,
+            "Token ID is not within the free claim IDs."
+        );
+        require(
+            isFreeClaim(msg.sender, tokenId),
+            "Token ID is not associated to your address."
+        );
 
         _safeMint(msg.sender, tokenId);
     }
 
     function isOG(address _user) public view returns (bool) {
-        for (uint i = 0; i < oGAddresses.length; i++) {
+        for (uint256 i = 0; i < oGAddresses.length; i++) {
             if (oGAddresses[i] == _user) {
                 return true;
             }
@@ -112,7 +127,7 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
     }
 
     function isWhitelisted(address _user) public view returns (bool) {
-        for (uint i = 0; i < whitelistedAddresses.length; i++) {
+        for (uint256 i = 0; i < whitelistedAddresses.length; i++) {
             if (whitelistedAddresses[i] == _user) {
                 return true;
             }
@@ -120,17 +135,21 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
         return false;
     }
 
-    function isFreeClaim(address _user, uint _tokenId) public view returns (bool) {
-        if(freeClaimAddresses[_tokenId - 1] == _user) {
+    function isFreeClaim(address _user, uint256 _tokenId)
+        public
+        view
+        returns (bool)
+    {
+        if (freeClaimAddresses[_tokenId - 1] == _user) {
             return true;
         }
         return false;
     }
 
     function walletOfOwner(address _owner)
-    public
-    view
-    returns (uint256[] memory)
+        public
+        view
+        returns (uint256[] memory)
     {
         uint256 ownerTokenCount = balanceOf(_owner);
         uint256[] memory tokenIds = new uint256[](ownerTokenCount);
@@ -141,20 +160,27 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
     }
 
     function tokenURI(uint256 tokenId)
-    public
-    view
-    virtual
-    override
-    returns (string memory)
+        public
+        view
+        virtual
+        override
+        returns (string memory)
     {
-        if(revealed == false) {
+        if (revealed == false) {
             return notRevealedUri;
         }
 
         string memory currentBaseURI = _baseURI();
-        return bytes(currentBaseURI).length > 0
-        ? string(abi.encodePacked(currentBaseURI, tokenId.toString(), baseExtension))
-        : "";
+        return
+            bytes(currentBaseURI).length > 0
+                ? string(
+                    abi.encodePacked(
+                        currentBaseURI,
+                        tokenId.toString(),
+                        baseExtension
+                    )
+                )
+                : "";
     }
 
     //only owner
@@ -186,7 +212,10 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
         baseURI = _newBaseURI;
     }
 
-    function setBaseExtension(string memory _newBaseExtension) public onlyOwner {
+    function setBaseExtension(string memory _newBaseExtension)
+        public
+        onlyOwner
+    {
         baseExtension = _newBaseExtension;
     }
 
@@ -230,15 +259,24 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
     }
 
     function withdraw() public onlyOwner {
-        uint balance = address(this).balance;
+        uint256 balance = address(this).balance;
 
         // testnet
-        payable(0xa0Ee7A142d267C1f36714E4a8F75612F20a79720).transfer(balance * 5 / 100);
-        payable(0xBcd4042DE499D14e55001CcbB24a551F3b954096).transfer(balance * 5 / 100);
-        payable(0x71bE63f3384f5fb98995898A86B02Fb2426c5788).transfer(address(this).balance);
+        payable(0xa0Ee7A142d267C1f36714E4a8F75612F20a79720).transfer(
+            (balance * 5) / 100
+        );
+        payable(0xBcd4042DE499D14e55001CcbB24a551F3b954096).transfer(
+            (balance * 5) / 100
+        );
+        payable(0x88A14AF453b14070B9B943eea32bf3F534dFa01a).transfer(
+            address(this).balance
+        );
+        // payable(0x71bE63f3384f5fb98995898A86B02Fb2426c5788).transfer(
+        //     address(this).balance
+        // );
 
-//        payable(0xceE523717E912c17B21100bb041ae46689acEbaE).transfer(balance * 5 / 100);
-//        payable(0x987b91b831f01b31eE5c0acFFd52dbeb602DE2D5).transfer(balance * 5 / 100);
-//        payable(0xF3309975C3Ab758E8b3937f5C524002EB09AB5eB).transfer(address(this).balance);
+        //        payable(0xceE523717E912c17B21100bb041ae46689acEbaE).transfer(balance * 5 / 100);
+        //        payable(0xBEF558C04C3Bdd672E33333e7Ff1fc415937B5c4).transfer(balance * 5 / 100);
+        //        payable(0xF3309975C3Ab758E8b3937f5C524002EB09AB5eB).transfer(address(this).balance);
     }
 }
