@@ -260,22 +260,19 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
     }
 
     //reserved NFTs for rewards, prizes
-    function reservedMint(uint256 qty, address recipient) public onlyOwner {
-        uint256 currentTokensMinted = _tokenIds.current();
+    function reservedMint(uint256 _qty, address _recipient) public onlyOwner {
+        uint256 supply = _tokenIds.current();
 
-        require(qty > 0, "Need to mint at least 1 NFT");
-        require(
-            currentTokensMinted + qty <= maxSupply,
-            "No more NFTs to mint!"
-        );
+        require(_qty > 0, "Need to mint at least 1 NFT");
+        require(supply + _qty <= maxSupply, "No more NFTs to mint!");
 
-        for (uint256 i = 1; i <= qty; i++) {
-            if (recipient != owner()) {
-                addressMintedBalance[recipient]++;
+        for (uint256 i = 1; i <= _qty; i++) {
+            if (_recipient != owner()) {
+                addressMintedBalance[_recipient]++;
             }
 
             _tokenIds.increment();
-            _safeMint(recipient, _tokenIds.current());
+            _safeMint(_recipient, _tokenIds.current());
         }
     }
 
