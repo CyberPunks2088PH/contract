@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: GPL-3.0
-
 pragma solidity >=0.7.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -37,7 +36,7 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
 
     mapping(address => uint256) public addressMintedBalance;
 
-    constructor() ERC721("CyberPunkK9", "CPK9") {
+    constructor() ERC721("CyberPunks K9", "CPK9") {
         setBaseURI("https://domain/nft/api/");
         setNotRevealedURI("https://domain/nft/api/0.json");
 
@@ -51,8 +50,9 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
 
     // public
     function mint(uint256 _mintQuantity) public payable {
-        require(!paused, "the contract is paused");
         uint256 supply = _tokenIds.current();
+
+        require(!paused, "the contract is paused");
         require(_mintQuantity > 0, "need to mint at least 1 NFT");
         require(
             _mintQuantity <= maxMintQuantity,
@@ -63,6 +63,7 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
         if (msg.sender != owner()) {
             bool _isOG = isOG(msg.sender);
             bool _isWhitelisted = isWhitelisted(msg.sender);
+
             uint256 cost = 0;
 
             if (_isOG) {
@@ -258,22 +259,39 @@ contract CyberPunkK9 is ERC721Enumerable, Ownable {
         freeClaimAddresses = _users;
     }
 
+    //reserved NFTs for rewards, prizes
+    function reservedMint(uint256 qty, address recipient) public onlyOwner {
+        uint256 currentTokensMinted = _tokenIds.current();
+
+        require(qty > 0, "Need to mint at least 1 NFT");
+        require(
+            currentTokensMinted + qty <= maxSupply,
+            "No more NFTs to mint!"
+        );
+
+        for (uint256 i = 1; i <= qty; i++) {
+            if (recipient != owner()) {
+                addressMintedBalance[recipient]++;
+            }
+
+            _tokenIds.increment();
+            _safeMint(recipient, _tokenIds.current());
+        }
+    }
+
     function withdraw() public onlyOwner {
         uint256 balance = address(this).balance;
 
         // testnet
-        payable(0xa0Ee7A142d267C1f36714E4a8F75612F20a79720).transfer(
+        payable(0xBEF558C04C3Bdd672E33333e7Ff1fc415937B5c4).transfer(
             (balance * 5) / 100
         );
-        payable(0xBcd4042DE499D14e55001CcbB24a551F3b954096).transfer(
+        payable(0xb132f2c06a4079d546d4914a61E5c1Be65787fD6).transfer(
             (balance * 5) / 100
         );
-        payable(0x88A14AF453b14070B9B943eea32bf3F534dFa01a).transfer(
+        payable(0xfAA888552A7491E5724dA4F90b46248eD2565D21).transfer(
             address(this).balance
         );
-        // payable(0x71bE63f3384f5fb98995898A86B02Fb2426c5788).transfer(
-        //     address(this).balance
-        // );
 
         //        payable(0xceE523717E912c17B21100bb041ae46689acEbaE).transfer(balance * 5 / 100);
         //        payable(0xBEF558C04C3Bdd672E33333e7Ff1fc415937B5c4).transfer(balance * 5 / 100);
