@@ -4,7 +4,8 @@
   "description": "CyberPunks K9 NFT Contract",
   "main": "index.js",
   "dependencies": {
-    "dotenv": "^16.0.0"
+    "dotenv": "^16.0.0",
+    "hardhat-gas-reporter": "^1.0.8"
   },
   "devDependencies": {
     "@nomiclabs/buidler": "^1.4.8",

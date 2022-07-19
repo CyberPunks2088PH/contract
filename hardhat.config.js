@@ -2,6 +2,7 @@ require("@nomiclabs/hardhat-waffle");
 require('@nomiclabs/hardhat-ethers');
 require('@openzeppelin/hardhat-upgrades');
 require("@nomiclabs/hardhat-etherscan");
+require("hardhat-gas-reporter");
 require('dotenv').config();
 
 /**
@@ -25,6 +26,9 @@ module.exports = {
         enabled: true
       }
     }
+  },
+  gasReporter: {
+    currency: 'PHP',
   },
   networks: {
     polygonmainnet: {
